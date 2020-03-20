@@ -2,7 +2,7 @@
 An unofficial PyTorch implementation of paper “Exact-K Recommendation via Maximal Clique Optimization”
 
 ## 说明
-数据（`data`目录）及超参（`hyperparams.py`）来源于[官方实现](https://github.com/pangolulu/exact-k-recommendation.git)。网络按照论文描述的大体框架进行搭建，细节有一定出入。
+数据（`data`目录以及`data_load_ml.py`）及超参（`hyperparams.py`）来源于[官方实现](https://github.com/pangolulu/exact-k-recommendation.git)。网络按照论文描述的大体框架进行搭建，细节有一定出入。
 
 ## 细节
 
