@@ -21,10 +21,9 @@ if __name__ == '__main__':
     net = net.cuda()
     optimizer = Adam(net.parameters(), lr=1e-3, weight_decay=1e-6)
 
-    net.train()
-
     for epoch in range(hp.gen_num_epochs):
         tbar = tqdm(train_loader)
+        net.train()
         for user, card, card_idx, item_cand, item_pos, mask_dec in tbar:
             # user, card, card_idx, item_cand, item_pos, mask_dec = next(train_loader)
             optimizer.zero_grad()
