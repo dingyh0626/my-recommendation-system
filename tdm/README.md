@@ -1,4 +1,4 @@
-# tdm
+# TDM
 An unofficial PyTorch implementation of paper [Learning Tree-based Deep Model for Recommender Systems](https://arxiv.org/pdf/1801.02294.pdf).
 ## 说明
 - 将MovieLens-20M放入`datasets`目录。
