@@ -1,9 +1,7 @@
 import torch
 from torch import nn
-import torch.nn.functional as F
-from modules.mhsa import Encoder
-from torch.autograd import Variable
-from modules.rnn import LSTMCell
+from exact_k.modules.mhsa import Encoder
+from exact_k.modules.rnn import LSTMCell
 from torch.nn import init
 
 

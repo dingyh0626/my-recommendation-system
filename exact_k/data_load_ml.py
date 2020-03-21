@@ -1,5 +1,5 @@
 from __future__ import print_function
-from hyperparams import Hyperparams as hp
+from exact_k.hyperparams import Hyperparams as hp
 from torch.utils.data import Dataset as dataset
 import random
 import numpy as np

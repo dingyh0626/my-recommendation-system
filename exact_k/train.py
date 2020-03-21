@@ -2,14 +2,14 @@ import os
 os.environ["CUDA_VISIBLE_DEVICES"] = '4'
 from torch.optim import Adam
 from torch.utils.data import DataLoader
-from hyperparams import Hyperparams as hp
-from data_load_ml import Dataset, load_item_vocab, load_user_vocab
-from modules.pointer_rnn import PointerRNN
+from exact_k.hyperparams import Hyperparams as hp
+from exact_k.data_load_ml import Dataset, load_item_vocab, load_user_vocab
+from exact_k.modules.pointer_rnn import PointerRNN
 import torch.nn.functional as F
 from torch import nn
 from tqdm import tqdm
 import torch
-from metric import precision_at_k, hit_ratio_at_k
+from exact_k.metric import precision_at_k, hit_ratio_at_k
 import numpy as np
 
 if __name__ == '__main__':
