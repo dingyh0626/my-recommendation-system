@@ -80,6 +80,22 @@ def load_list(fname):
             list_.append(line.strip())
     return list_
 
+def collect(x):
+    output = {}
+    for k in x[0].keys():
+        output[k] = []
+    for t in x:
+        for k, v in t.items():
+            output[k].append(v)
+    for k, v in output.items():
+        output[k] = np.concatenate(output[k], 0)
+    output['rate'] = np.reshape(output['rate'], (-1,))
+    output['gender'] = np.reshape(output['gender'], (-1,))
+    output['age'] = np.reshape(output['age'], (-1,))
+    output['occupation'] = np.reshape(output['occupation'], (-1,))
+    output['zipcode'] = np.reshape(output['zipcode'], (-1,))
+    return output
+
 states = ["warm_state", "user_cold_state", "item_cold_state", "user_and_item_cold_state"]
 
 
@@ -147,13 +163,9 @@ def generate(master_path):
                 tmp_x_converted = {}
                 tmp_x_converted.update(movie_dict[m_id])
                 tmp_x_converted.update(user_dict[u_id])
-                # tmp_x_converted = torch.cat((movie_dict[m_id], user_dict[u_id]), 1)
                 support_x_app.append(tmp_x_converted)
-                # try:
-                #     support_x_app = torch.cat((support_x_app, tmp_x_converted), 0)
-                # except:
-                #     support_x_app = tmp_x_converted
-            support_x_app = np.array(support_x_app)
+            # support_x_app = np.array(support_x_app)
+            support_x_app = collect(support_x_app)
 
             query_x_app = []
             for m_id in tmp_x[indices[-10:]]:
@@ -168,7 +180,8 @@ def generate(master_path):
                 #     query_x_app = torch.cat((query_x_app, tmp_x_converted), 0)
                 # except:
                 #     query_x_app = tmp_x_converted
-            query_x_app = np.array(query_x_app)
+            query_x_app = collect(query_x_app)
+            # query_x_app = np.array(query_x_app)
             support_y_app = tmp_y[indices[:-10]]
             query_y_app = tmp_y[indices[-10:]]
 

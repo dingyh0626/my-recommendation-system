@@ -4,7 +4,8 @@ from tensorflow.contrib.layers import xavier_initializer
 
 
 class MeLU(object):
-    def __init__(self, features, batch_size=2, hiddens=(128, 64, 32), loss_type='mse', num_local_update=4, local_lr=5e-6, global_lr=5e-5, reuse=False):
+    def __init__(self, features, batch_size=2, hiddens=(128, 64, 32), loss_type='mse', num_local_update=4,
+                 local_lr=5e-6, global_lr=5e-5, reuse=False, train=True):
         assert loss_type in ('mse', 'bce')
         self.features = features
         self.hiddens = hiddens
@@ -12,6 +13,7 @@ class MeLU(object):
         self.reuse = reuse
         self.num_local_updates = num_local_update
         self.local_lr = local_lr
+        self.global_lr = global_lr
         sup_placeholders = []
         query_placeholders = []
         self.batch_size = batch_size
@@ -20,13 +22,35 @@ class MeLU(object):
             query_placeholders.append(self.generate_placeholders('query_'.format(i)))
         self.sup_placeholders = sup_placeholders
         self.query_placeholders = query_placeholders
+
         self.global_weights, self.local_weights = self.generate_weights(reuse)
-        self.global_lr = global_lr
-        # self.pred, self.test_loss = self.forward(self.query_placeholders, self.global_weights)
-        # self.optimizer = tf.train.AdamOptimizer(self.global_lr)
-        # self.grad_placeho
-        # self.grad = self.global_grad()
-        self.train_loss, self.train_step = self.global_update()
+        if train:
+            self.train_loss, self.train_step = self.global_update()
+        else:
+            self.sup_infer_placeholders = self.generate_placeholders('sup_infer')
+            self.query_infer_placeholders = self.generate_placeholders('query_infer')
+            self.grad_score = self.get_grad_score()
+            self.infer_result = self.infer()
+
+
+    def infer(self):
+        weights = self.local_update(self.sup_infer_placeholders)
+        pred, _ = self.forward(self.query_infer_placeholders, weights, return_loss=False)
+        return pred
+
+
+    def get_grad_score(self):
+        weights = dict(self.global_weights)
+        score = 0
+        for i in range(self.num_local_updates):
+            _, loss = self.forward(self.sup_infer_placeholders, weights)
+            loss = loss / tf.stop_gradient(tf.norm(loss))
+            grad = tf.gradients(loss, [v for v in self.local_weights.values()])
+            for g in grad:
+                score += tf.norm(g)
+            for k, g in zip(self.local_weights.keys(), grad):
+                weights[k] = weights[k] - self.local_lr * g
+        return score / self.num_local_updates
 
 
     def local_update(self, sup_placeholders):
@@ -99,7 +123,7 @@ class MeLU(object):
         return global_weights, local_weights
 
 
-    def forward(self, placeholders, weights):
+    def forward(self, placeholders, weights, return_loss=True):
         embedding_output = []
         for f in self.features:
             name = f.name
@@ -118,12 +142,15 @@ class MeLU(object):
             output = tf.nn.relu(output)
         output = tf.matmul(output, weights['weights_output']) + weights['bias_output']
         output = tf.reshape(output, (-1,))
-        if self.loss_type == 'mse':
-            loss = tf.losses.mean_squared_error(placeholders['target'], output)
+        if return_loss:
+            if self.loss_type == 'mse':
+                loss = tf.losses.mean_squared_error(placeholders['target'], output)
+            else:
+                loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=output, logits=placeholders['target'])
+            return output, loss
         else:
-            loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=output, logits=placeholders['target'])
+            return output, None
 
-        return output, loss
 
     def generate_train_feed_dict(self, input_sup, target_sup, input_query, target_query):
         feed_dict = {}
@@ -136,10 +163,11 @@ class MeLU(object):
                 feed_dict[self.query_placeholders[i][k]] = v
         return feed_dict
 
-    def generate_pred_feed_dict(self, input):
+    def generate_infer_feed_dict(self, placeholders, input, y):
         feed_dict = {}
         for k, v in input.items():
-            feed_dict[self.query_placeholders[k]] = v
+            feed_dict[placeholders[k]] = v
+        feed_dict[placeholders['target']] = y
         return feed_dict
 
 
