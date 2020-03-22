@@ -4,10 +4,10 @@ An unofficial TensorFlow implementation of paper [MeLU: Meta-Learned User Prefer
 
 # 说明
 - `preprocess.py`：预处理参照[官方实现](https://github.com/hoyeoplee/MeLU.git)
-- `movielens`数据：[官方实现](https://github.com/hoyeoplee/MeLU.git)
+- `movielens`数据：[官方文件](https://github.com/hoyeoplee/MeLU.git)
 - 训练：端到端的方式实现，无中间过程保存。
 - NDCG指标：NDCG实现方式似乎版本比较多，官方实现没有给出，尝试了几种实现方式似乎都远远达不到论文给出的结果。
-本实现方式如下，仅供参考：
+本实现方式如下，仅供参考（IDCG根据真实打分和真实排名计算，DCG根据物品真实打分和在预测样本内的排名计算）：
 ```python
 import numpy as np
 def NDCG(pred, target, k=1):
